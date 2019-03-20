@@ -11,33 +11,46 @@ import java.io.Serializable;
 @EntityListeners(AuditingEntityListener.class)
 public class Sensor implements Serializable {
     @Id
-    @NotBlank
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name="sensor_id")
+    private long id;
 
-    @NotBlank
     @Column(name = "sunlight")
     private int sunlight;
 
-    @NotBlank
+    @Column(name = "fid")
+    private String fid;
+
     @Column(name = "water_received")
     private int water_received;
 
-    @NotBlank
     @Column(name = "state")
     private boolean state;
 
-    protected Sensor(@NotBlank Long id) {
-        this.id = id;
+    @Column(name = "access_server")
+    private String auth;
+
+    protected Sensor() {
+
     }
 
-    public Sensor(@NotBlank int sunlight, @NotBlank int water_received) {
+    public Sensor(@NotBlank int sunlight, @NotBlank int water_received, @NotBlank String fid) {
         this.sunlight = sunlight;
         this.water_received = water_received;
         this.state = true;
+        this.fid = fid;
+        this.auth = "";
     }
 
-    public Long getId() {
+    public String getFid() {
+        return fid;
+    }
+
+    public void setFid(String fid) {
+        this.fid = fid;
+    }
+
+    public long getId() {
         return id;
     }
 
@@ -64,5 +77,13 @@ public class Sensor implements Serializable {
     public boolean setState(boolean state) {
         this.state = state;
         return state;
+    }
+
+    public String getAuth() {
+        return auth;
+    }
+
+    public void setAuth(String auth) {
+        this.auth = auth;
     }
 }
