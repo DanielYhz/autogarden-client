@@ -144,10 +144,10 @@ public class SensorController {
     }
 
     // Register a sensor
-    @PostMapping("/registration/{id}")
+    @PostMapping("/register/{id}")
     public String registerSensor(@PathVariable(value = "id") long sensorId) {
         Sensor sensor = sensorRepository.findSensorById(sensorId);
-        String access_server = sensor.getAuth() + "/sensors/registration/" + sensorId;
+        String access_server = sensor.getAuth() + "/sensors/register/" + sensorId;
         URLConnection client = null;
         StringBuffer response = new StringBuffer();
         try {
@@ -375,7 +375,7 @@ public class SensorController {
         this.sensorRepository.save(sensor);
 
         sb.append("Update complete");
-        
+
         if (sensor.isObserve()) {
             notify(sensor,sb.toString());
             sb.append("\n Server notified.");
