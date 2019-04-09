@@ -215,6 +215,8 @@ public class SensorController {
             sb.deleteCharAt(sb.length() - 1);
             sb.append("}");
             String content = sb.toString();
+
+            System.out.print(content);
             StringEntity params = new StringEntity(content);
 
             request.setHeader("content-type", "application/json");
@@ -234,22 +236,48 @@ public class SensorController {
         catch (Exception e) {
             System.out.println(e);
         }
-
+        StringBuilder sb = new StringBuilder();
         if (response_message.toString().equals("Update succeed!")) {
             if (map.containsKey("sensor_id")) {
                 sensor.setId(Long.parseLong(map.get("sensor_id")));
+                if (sensor.isObserve()) {
+                    sb.append("Sensor id is updated to " + Integer.parseInt(map.get("sensor_id")));
+                    sb.append("\n");
+                }
             }
 
             if (map.containsKey("state")) {
                 sensor.setState(Boolean.parseBoolean(map.get("state")));
+                if (sensor.isObserve()) {
+                    sb.append("Sensor state is updated to ");
+                    if (Integer.parseInt(map.get("state")) == 1) {
+                        sb.append("on");
+                    } else {
+                        sb.append("off");
+                    }
+                    sb.append("\n");
+                }
             }
 
             if (map.containsKey("access_mode")) {
                 sensor.setAccess_mode(Integer.parseInt(map.get("access_mode")));
+                if (sensor.isObserve()) {
+                    sb.append("Sensor access mode is updated to ");
+                    if (Integer.parseInt(map.get("access_mode")) == 0) {
+                        sb.append("Read Only");
+                    } else if (Integer.parseInt(map.get("access_mode")) == 1){
+                        sb.append("Write Only");
+                    } else {
+                        sb.append("Read and Write");
+                    }
+                    sb.append("\n");
+                }
             }
+
             this.sensorRepository.save(sensor);
 
-            return "Update device id: " + sensorId + " succeed!";
+            sb.append("Update device id: " + sensorId + " succeed!");
+            return sb.toString();
         } else {
             return "Something is wrong!";
         }
