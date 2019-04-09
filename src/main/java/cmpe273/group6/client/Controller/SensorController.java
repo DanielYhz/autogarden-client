@@ -392,7 +392,11 @@ public class SensorController {
             this.sensorRepository.save(sensor);
             return "Sensor of ID " + sensorId + " is being observed.";
         } else {
-            return "Something is wrong with turning on the observation.";
+            if (map.containsKey("observe")) {
+                sensor.setObserve(Boolean.parseBoolean(map.get("observe")));
+            }
+            this.sensorRepository.save(sensor);
+            return "Device is not being observed";
         }
     }
 
