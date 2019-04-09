@@ -367,4 +367,38 @@ public class SensorController {
             return "Something is wrong with turning on the observation.";
         }
     }
+
+    @GetMapping("/discover/{id}")
+    public String discover(@PathVariable(value = "id") long sensorId) {
+        try {
+            Sensor sensor = sensorRepository.findSensorById(sensorId);
+            StringBuilder sb = new StringBuilder();
+            sb.append("This is Sensor " + sensorId + "\n");
+            sb.append("The current sunglight amount is " + sensor.getSunlight() + "\n");
+            sb.append("The current water received is " + sensor.getWater_received() + "\n");
+            sb.append("The sensor is ");
+            if (sensor.getState()) {
+                sb.append("on" + "\n");
+            } else {
+                sb.append("off" + "\n");
+            }
+            sb.append("The access mode is ");
+            if (sensor.getAccess_mode() == 0) {
+                sb.append("read only" + "\n");
+            } else if (sensor.getAccess_mode() == 1) {
+                sb.append("write only" + "\n");
+            } else {
+                sb.append("read and write" + "\n");
+            }
+            if (sensor.isObserve()) {
+                sb.append("The device is being observed");
+            } else {
+                sb.append("The device is not being observed");
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return "";
+    }
 }
