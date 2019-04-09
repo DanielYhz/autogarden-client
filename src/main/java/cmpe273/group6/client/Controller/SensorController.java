@@ -213,6 +213,38 @@ public class SensorController {
 //        return response.toString();
 //    }
 
+    public void notify(Sensor sensor, String message) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"");
+        sb.append("sensor_id");
+        sb.append("\" : ");
+        sb.append("\"");
+        sb.append(Long.toString(sensor.getId()));
+        sb.append("\"");
+        sb.append("\"");
+        sb.append("message");
+        sb.append("\" : \"");
+        sb.append(message);
+        sb.append("\"}");
+
+        String access_server = sensor.getAuth() + "/sensors/notify/" + sensor.getId();
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        try {
+            HttpPost request = new HttpPost(access_server);
+            String content = sb.toString();
+            StringEntity params = new StringEntity(content);
+
+            request.setHeader("content-type", "application/json");
+            request.setEntity(params);
+
+            HttpResponse response = httpClient.execute(request);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+
     // Update a sensor in server
     // sensor_id, state, access_mode. This part have to change in the same time with server.
 
@@ -244,7 +276,7 @@ public class SensorController {
             sb.append("}");
             String content = sb.toString();
 
-            System.out.print(content);
+            // System.out.print(content);
             StringEntity params = new StringEntity(content);
 
             request.setHeader("content-type", "application/json");
@@ -305,6 +337,12 @@ public class SensorController {
             this.sensorRepository.save(sensor);
 
             sb.append("Update device id: " + sensorId + " succeed!");
+
+            if (sensor.isObserve()) {
+                notify(sensor,sb.toString());
+                sb.append("\n Server notified.");
+            }
+
             return sb.toString();
         } else {
             return "Something is wrong!";
@@ -335,7 +373,13 @@ public class SensorController {
             }
         }
         this.sensorRepository.save(sensor);
+
         sb.append("Update complete");
+        
+        if (sensor.isObserve()) {
+            notify(sensor,sb.toString());
+            sb.append("\n Server notified.");
+        }
         return sb.toString();
     }
 
