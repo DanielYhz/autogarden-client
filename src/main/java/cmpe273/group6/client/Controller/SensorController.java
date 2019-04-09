@@ -197,6 +197,9 @@ public class SensorController {
         String access_server = sensor.getAuth() + "/sensors/update/" + sensorId;
 
         HttpClient httpClient = HttpClientBuilder.create().build();
+
+        StringBuffer response_message = new StringBuffer();
+
         try {
             HttpPost request = new HttpPost(access_server);
             StringBuilder sb = new StringBuilder();
@@ -218,50 +221,25 @@ public class SensorController {
             request.setEntity(params);
 
             HttpResponse response = httpClient.execute(request);
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                response_message.append(inputLine);
+            }
+            in.close();
         }
         catch (Exception e) {
             System.out.println(e);
         }
 
-        return "Update device id: " + sensorId + " succeed!";
-
-/**
-        URLConnection client = null;
-
-        Map<String,Object> params = new LinkedHashMap<>();
-        params.put("senser_id", sensorId);
-//        params.put("sunlight", sensorDetails.getSunlight());
-//        params.put("water_received", sensorDetails.getWater_received());
-        params.put("state", sensorDetails.getState());
-        params.put("access_mode", sensorDetails.getAccess_mode());
-
-        StringBuilder postData = new StringBuilder();
-        for (Map.Entry<String,Object> param : params.entrySet()) {
-            if (postData.length() != 0) postData.append('\n');
-            postData.append(param.getKey());
-            postData.append('=');
-            postData.append((param.getValue()));
+        if (response_message.toString().equals("Update succeed!")) {
+            return "Update device id: " + sensorId + " succeed!";
+        } else {
+            return "Something is wrong!";
         }
-        String updateinfor = postData.toString();
-        System.out.println(updateinfor);
-
-        try {
-            URL url = new URL(access_server);
-            client = url.openConnection();
-            client.setDoOutput(true);
-            OutputStreamWriter out = new OutputStreamWriter(
-                    client.getOutputStream());
-            out.write(updateinfor);
-            out.close();
-        } catch (MalformedURLException e) {
-            //bad  URL, tell the user
-            System.out.println("jj1");
-        } catch (IOException e) {
-            //network error/ tell the user
-            System.out.println("jj2");
-        }
-        return sensor;
- */
     }
 
     // Update the local data stored in the client (sensor)
