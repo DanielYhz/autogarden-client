@@ -105,7 +105,6 @@ public class SensorController {
             e.printStackTrace();
         }
 
-
         if (response.toString().substring(0,4).equals("http")) {
             sensor.setAuth(response.toString());
             sensorRepository.save(sensor);
@@ -186,18 +185,18 @@ public class SensorController {
         return response.toString();
     }
 
-    // Update a sensor
+    // Update a sensor in server
     @PostMapping("/update/{id}")
-    public Sensor update(@PathVariable(value = "id") long sensorId, @RequestBody Map<String, String> map){
+    public String update(@PathVariable(value = "id") long sensorId, @RequestBody Map<String, String> map){
+        if (sensorRepository.findSensorById(sensorId) == null) {
+            return "The device is not being bootstrapped, please check!";
+        }
         Sensor sensor = sensorRepository.findSensorById(sensorId);
         String access_server = sensor.getAuth() + "/sensors/update/" + sensorId;
 
         HttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost request = new HttpPost(access_server);
-//            String content = "{\"sensor_id\": \"" + sensorId + "\" ,\"state\": \""
-//                    + map.get("state") + "\" ,\"access_mode\": \"" + map.get("access_mode") + "\"}";
-
             StringBuilder sb = new StringBuilder();
             sb.append("{");
             for (String c : map.keySet()) {
@@ -213,18 +212,20 @@ public class SensorController {
             String content = sb.toString();
             StringEntity params = new StringEntity(content);
 
-            System.out.println(content);
-
             request.setHeader("content-type", "application/json");
             request.setEntity(params);
 
             HttpResponse response = httpClient.execute(request);
+            System.out.println(response.toString());
+            if (response.toString().equals("Update succeed!")) {
+                return "Update device id: " + sensorId + " succeed!";
+            }
         }
         catch (Exception e) {
             System.out.println(e);
         }
 
-        return sensor;
+        return "Something is wrong!";
 
 /**
         URLConnection client = null;
@@ -264,4 +265,23 @@ public class SensorController {
         return sensor;
  */
     }
+
+    // Update the local data stored in the client (sensor)
+    // change water received and sunlight only.
+    @PostMapping("/update/data/{id}")
+    public String updateData(@PathVariable(value = "id") long sensorId, @RequestBody Map<String, String> map) {
+        if (sensorRepository.findSensorById(sensorId) == null) {
+            return "The device is not being bootstrapped, please check!";
+        }
+        Sensor sensor = sensorRepository.findSensorById(sensorId);
+        if (map.containsKey("sunlight")) {
+            sensor.setSunlight(Integer.parseInt(map.get("sunlight")));
+        }
+        if (map.containsKey("water_received")) {
+            sensor.setWater_received(Integer.parseInt(map.get("water_received")));
+        }
+        this.sensorRepository.save(sensor);
+        return "Update complete";
+    }
+
 }
