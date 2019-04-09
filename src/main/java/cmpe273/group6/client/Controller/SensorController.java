@@ -186,6 +186,8 @@ public class SensorController {
     }
 
     // Update a sensor in server
+    // sensor_id, state, access_mode. This part have to change in the same time with server.
+
     @PostMapping("/update/{id}")
     public String update(@PathVariable(value = "id") long sensorId, @RequestBody Map<String, String> map){
         if (sensorRepository.findSensorById(sensorId) == null) {
@@ -216,16 +218,12 @@ public class SensorController {
             request.setEntity(params);
 
             HttpResponse response = httpClient.execute(request);
-            System.out.println(response.toString());
-            if (response.toString().equals("Update succeed!")) {
-                return "Update device id: " + sensorId + " succeed!";
-            }
         }
         catch (Exception e) {
             System.out.println(e);
         }
 
-        return "Something is wrong!";
+        return "Update device id: " + sensorId + " succeed!";
 
 /**
         URLConnection client = null;
@@ -283,5 +281,4 @@ public class SensorController {
         this.sensorRepository.save(sensor);
         return "Update complete";
     }
-
 }
