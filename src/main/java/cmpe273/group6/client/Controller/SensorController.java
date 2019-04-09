@@ -188,15 +188,29 @@ public class SensorController {
 
     // Update a sensor
     @PostMapping("/update/{id}")
-    public Sensor update(@PathVariable(value = "id") long sensorId, @Valid @RequestBody Sensor sensorDetails){
+    public Sensor update(@PathVariable(value = "id") long sensorId, @RequestBody Map<String, String> map){
         Sensor sensor = sensorRepository.findSensorById(sensorId);
         String access_server = sensor.getAuth() + "/sensors/update/" + sensorId;
 
         HttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost request = new HttpPost(access_server);
-            String content = "{\"sensor_id\": \"" + sensorId + "\" ,\"state\": \""
-                    + sensorDetails.getState() + "\" ,\"access_mode\": \"" + sensorDetails.getAccess_mode() + "\"}";
+//            String content = "{\"sensor_id\": \"" + sensorId + "\" ,\"state\": \""
+//                    + map.get("state") + "\" ,\"access_mode\": \"" + map.get("access_mode") + "\"}";
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            for (String c : map.keySet()) {
+                sb.append("\"");
+                sb.append(c);
+                sb.append("\" : ");
+                sb.append("\"");
+                sb.append(map.get(c));
+                sb.append("\",");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("}");
+            String content = sb.toString();
             StringEntity params = new StringEntity(content);
 
             System.out.println(content);
