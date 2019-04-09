@@ -248,7 +248,7 @@ public class SensorController {
                 sensor.setAccess_mode(Integer.parseInt(map.get("access_mode")));
             }
             this.sensorRepository.save(sensor);
-            
+
             return "Update device id: " + sensorId + " succeed!";
         } else {
             return "Something is wrong!";
@@ -263,13 +263,80 @@ public class SensorController {
             return "The device is not being bootstrapped, please check!";
         }
         Sensor sensor = sensorRepository.findSensorById(sensorId);
+        StringBuilder sb = new StringBuilder();
         if (map.containsKey("sunlight")) {
             sensor.setSunlight(Integer.parseInt(map.get("sunlight")));
+            if (sensor.isObserve()) {
+                sb.append("Sunlight is updated to " + Integer.parseInt(map.get("sunlight")));
+                sb.append("\n");
+            }
         }
         if (map.containsKey("water_received")) {
             sensor.setWater_received(Integer.parseInt(map.get("water_received")));
+            if (sensor.isObserve()) {
+                sb.append("Water received is updated to " + Integer.parseInt(map.get("water_received")));
+                sb.append("\n");
+            }
         }
         this.sensorRepository.save(sensor);
-        return "Update complete";
+        sb.append("Update complete");
+        return sb.toString();
+    }
+
+    @PostMapping("/observe/{id}")
+    public String observe(@PathVariable(value = "id") long sensorId, @RequestBody Map<String, String> map) {
+        if (sensorRepository.findSensorById(sensorId) == null) {
+            return "The device is not being bootstrapped, please check!";
+        }
+        Sensor sensor = sensorRepository.findSensorById(sensorId);
+        String access_server = sensor.getAuth() + "/sensors/observe/" + sensorId;
+
+        HttpClient httpClient = HttpClientBuilder.create().build();
+
+        StringBuffer response_message = new StringBuffer();
+
+        try {
+            HttpPost request = new HttpPost(access_server);
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            for (String c : map.keySet()) {
+                sb.append("\"");
+                sb.append(c);
+                sb.append("\" : ");
+                sb.append("\"");
+                sb.append(map.get(c));
+                sb.append("\",");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("}");
+            String content = sb.toString();
+            StringEntity params = new StringEntity(content);
+
+            request.setHeader("content-type", "application/json");
+            request.setEntity(params);
+
+            HttpResponse response = httpClient.execute(request);
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                response_message.append(inputLine);
+            }
+            in.close();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        if (response_message.toString().equals("Observe on")) {
+            if (map.containsKey("observe")) {
+                sensor.setObserve(Boolean.parseBoolean(map.get("observe")));
+            }
+            this.sensorRepository.save(sensor);
+            return "Sensor of ID " + sensorId + " is being observed.";
+        } else {
+            return "Something is wrong with turning on the observation.";
+        }
     }
 }

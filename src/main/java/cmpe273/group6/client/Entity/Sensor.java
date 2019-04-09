@@ -33,6 +33,9 @@ public class Sensor implements Serializable {
     @Column(name = "access_mode")
     private int access_mode;
 
+    @Column(name = "observe")
+    private boolean observe;
+
     protected Sensor() {
 
     }
@@ -44,6 +47,7 @@ public class Sensor implements Serializable {
         this.fid = fid;
         this.auth = "";
         this.access_mode = 2;
+        this.observe = false;
     }
 
     public void setId(long id) {
@@ -101,5 +105,13 @@ public class Sensor implements Serializable {
 
     public void setAccess_mode(int access_mode) {
         this.access_mode = access_mode;
+    }
+
+    public boolean isObserve() {
+        return observe;
+    }
+
+    public void setObserve(boolean observe) {
+        this.observe = observe;
     }
 }
