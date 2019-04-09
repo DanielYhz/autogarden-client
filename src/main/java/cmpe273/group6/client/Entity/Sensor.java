@@ -46,6 +46,10 @@ public class Sensor implements Serializable {
         this.access_mode = 2;
     }
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
     public String getFid() {
         return fid;
     }

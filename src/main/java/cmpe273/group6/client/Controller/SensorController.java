@@ -236,6 +236,19 @@ public class SensorController {
         }
 
         if (response_message.toString().equals("Update succeed!")) {
+            if (map.containsKey("sensor_id")) {
+                sensor.setId(Long.parseLong(map.get("sensor_id")));
+            }
+
+            if (map.containsKey("state")) {
+                sensor.setState(Boolean.parseBoolean(map.get("state")));
+            }
+
+            if (map.containsKey("access_mode")) {
+                sensor.setAccess_mode(Integer.parseInt(map.get("access_mode")));
+            }
+            this.sensorRepository.save(sensor);
+            
             return "Update device id: " + sensorId + " succeed!";
         } else {
             return "Something is wrong!";
