@@ -54,7 +54,7 @@ public class SensorController {
         return sensorRepository.findSensorById(sensorId);
     }
 
-    // Update a Note.
+    // Update a sensor.
     @PutMapping(value = "/{id}")
     public Sensor updateSensor(@PathVariable(value = "id") Long sensorId, @Valid @RequestBody Sensor sensorDetails) {
         // sensorRepository.findById(sensorId).orElseThrow(() -> new ResourceNotFoundException("Sensor", "Id", sensorId));
@@ -67,13 +67,41 @@ public class SensorController {
         return updateSensor;
     }
 
-    // Delete a Note.
+    // Delete a sensor.
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteSensor (@PathVariable (value="id") long sensorId) {
-//        Sensor sensor = sensorRepository.findById(sensorId).orElseThrow(() -> new ResourceNotFoundException("Sensor", "Id", sensorId));
+    public String deleteSensor (@PathVariable (value="id") long sensorId) {
+        if (sensorRepository.findSensorById(sensorId) == null) {
+            return "The device is not being bootstrapped, please check!";
+        }
+
         Sensor sensor = sensorRepository.findSensorById(sensorId);
-        sensorRepository.delete(sensor);
-        return ResponseEntity.ok().build();
+        String access_server = sensor.getAuth() + "/sensors/" + sensorId;
+        StringBuffer response = new StringBuffer();
+        try {
+            URL urlObj = new URL(access_server);
+            HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
+            con.setDoOutput(true);
+            con.setDoInput(true);
+            con.setRequestMethod("DELETE");
+            con.getResponseMessage();
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (response.toString().equals("Delete Succeed")) {
+            sensorRepository.delete(sensor);
+            return "Delete success";
+        }
+        return "Something is wrong with your deletion.";
     }
 
     // Bootstrap a sensor.
@@ -153,37 +181,37 @@ public class SensorController {
         return response.toString();
     }
 
-    // Deregister a sensor
-    @GetMapping("/deregistration/{id}")
-    public String deregistrerSensor(@PathVariable(value = "id") long sensorId) {
-        Sensor sensor = sensorRepository.findSensorById(sensorId);
-        String access_server = sensor.getAuth() + "/sensors/deregistration/" + sensorId;
-        URLConnection client = null;
-        StringBuffer response = new StringBuffer();
-        try {
-            URL url = new URL(access_server);
-            client = url.openConnection();
-            client.setDoOutput(true);
-            OutputStreamWriter out = new OutputStreamWriter(
-                    client.getOutputStream());
-            out.write(Long.toString(sensorId));
-            out.close();
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(client.getInputStream()));
-            String inputLine;
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-        } catch (MalformedURLException e) {
-            //bad  URL, tell the user
-        } catch (IOException e) {
-            //network error/ tell the user
-        }
-        return response.toString();
-    }
+//    // Delete a sensor
+//    @GetMapping("/delete/{id}")
+//    public String deleteSensor(@PathVariable(value = "id") long sensorId) {
+//        Sensor sensor = sensorRepository.findSensorById(sensorId);
+//        String access_server = sensor.getAuth() + "/sensors/delete/" + sensorId;
+//        URLConnection client = null;
+//        StringBuffer response = new StringBuffer();
+//        try {
+//            URL url = new URL(access_server);
+//            client = url.openConnection();
+//            client.setDoOutput(true);
+//            OutputStreamWriter out = new OutputStreamWriter(
+//                    client.getOutputStream());
+//            out.write(Long.toString(sensorId));
+//            out.close();
+//
+//            BufferedReader in = new BufferedReader(
+//                    new InputStreamReader(client.getInputStream()));
+//            String inputLine;
+//
+//            while ((inputLine = in.readLine()) != null) {
+//                response.append(inputLine);
+//            }
+//            in.close();
+//        } catch (MalformedURLException e) {
+//            //bad  URL, tell the user
+//        } catch (IOException e) {
+//            //network error/ tell the user
+//        }
+//        return response.toString();
+//    }
 
     // Update a sensor in server
     // sensor_id, state, access_mode. This part have to change in the same time with server.
