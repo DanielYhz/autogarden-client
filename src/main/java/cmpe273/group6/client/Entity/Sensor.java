@@ -30,6 +30,9 @@ public class Sensor implements Serializable {
     @Column(name = "access_server")
     private String auth;
 
+    @Column(name = "access_mode")
+    private int access_mode;
+
     protected Sensor() {
 
     }
@@ -40,6 +43,7 @@ public class Sensor implements Serializable {
         this.state = true;
         this.fid = fid;
         this.auth = "";
+        this.access_mode = 2;
     }
 
     public String getFid() {
@@ -85,5 +89,13 @@ public class Sensor implements Serializable {
 
     public void setAuth(String auth) {
         this.auth = auth;
+    }
+
+    public int getAccess_mode() {
+        return access_mode;
+    }
+
+    public void setAccess_mode(int access_mode) {
+        this.access_mode = access_mode;
     }
 }

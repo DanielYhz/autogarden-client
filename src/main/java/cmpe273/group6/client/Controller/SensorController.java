@@ -4,6 +4,11 @@ package cmpe273.group6.client.Controller;
 import cmpe273.group6.client.Entity.Sensor;
 // import cmpe273.group6.client.Exception.ResourceNotFoundException;
 import cmpe273.group6.client.Service.SensorRepository;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -140,6 +145,12 @@ public class SensorController {
         } catch (IOException e) {
             //network error/ tell the user
         }
+
+        if (response.toString().equals("Registration Complete")) {
+            sensor.setState(true);
+            sensorRepository.save(sensor);
+        }
+
         return response.toString();
     }
 
@@ -176,26 +187,50 @@ public class SensorController {
     }
 
     // Update a sensor
-    @GetMapping("/update/{id}")
+    @PostMapping("/update/{id}")
     public Sensor update(@PathVariable(value = "id") long sensorId, @Valid @RequestBody Sensor sensorDetails){
         Sensor sensor = sensorRepository.findSensorById(sensorId);
-        String access_server = sensor.getAuth() + "/update/" + sensorId;
+        String access_server = sensor.getAuth() + "/sensors/update/" + sensorId;
+
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        try {
+            HttpPost request = new HttpPost(access_server);
+            String content = "{\"sensor_id\": \"" + sensorId + "\" ,\"state\": \""
+                    + sensorDetails.getState() + "\" ,\"access_mode\": \"" + sensorDetails.getAccess_mode() + "\"}";
+            StringEntity params = new StringEntity(content);
+
+            System.out.println(content);
+
+            request.setHeader("content-type", "application/json");
+            request.setEntity(params);
+
+            HttpResponse response = httpClient.execute(request);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+
+        return sensor;
+
+/**
         URLConnection client = null;
 
         Map<String,Object> params = new LinkedHashMap<>();
         params.put("senser_id", sensorId);
-        params.put("sunlight", sensorDetails.getSunlight());
-        params.put("water_received", sensorDetails.getWater_received());
+//        params.put("sunlight", sensorDetails.getSunlight());
+//        params.put("water_received", sensorDetails.getWater_received());
         params.put("state", sensorDetails.getState());
+        params.put("access_mode", sensorDetails.getAccess_mode());
 
         StringBuilder postData = new StringBuilder();
         for (Map.Entry<String,Object> param : params.entrySet()) {
-            if (postData.length() != 0) postData.append('&');
+            if (postData.length() != 0) postData.append('\n');
             postData.append(param.getKey());
             postData.append('=');
-            postData.append(String.valueOf(param.getValue()));
+            postData.append((param.getValue()));
         }
         String updateinfor = postData.toString();
+        System.out.println(updateinfor);
 
         try {
             URL url = new URL(access_server);
@@ -207,9 +242,12 @@ public class SensorController {
             out.close();
         } catch (MalformedURLException e) {
             //bad  URL, tell the user
+            System.out.println("jj1");
         } catch (IOException e) {
             //network error/ tell the user
+            System.out.println("jj2");
         }
         return sensor;
+ */
     }
 }
