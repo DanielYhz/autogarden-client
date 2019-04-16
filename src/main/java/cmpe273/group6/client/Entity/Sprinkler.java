@@ -17,7 +17,7 @@ public class Sprinkler implements Serializable {
     private long id;
 
     @Column (name = "state")
-    private boolean state;
+    private int state;
 
     @Column(name = "access_server")
     private String auth;
@@ -29,7 +29,7 @@ public class Sprinkler implements Serializable {
 
     }
 
-    public Sprinkler(int id, boolean state, @NotBlank String fid) {
+    public Sprinkler(int id, int state, @NotBlank String fid) {
         this.id = id;
         this.state = state;
         this.auth = "";
@@ -44,11 +44,11 @@ public class Sprinkler implements Serializable {
         this.id = id;
     }
 
-    public boolean isState() {
+    public int getState() {
         return state;
     }
 
-    public void setState(boolean state) {
+    public void setState(int state) {
         this.state = state;
     }
 

@@ -45,7 +45,7 @@ public class CameraController {
     public Camera updateSprinkler(@PathVariable(value="id") long cameraId, @Valid @RequestBody Camera cameraDetails) {
         Camera camera = cameraRepository.findCameraById(cameraId);
         camera.setId(cameraDetails.getId());
-        camera.setState(cameraDetails.isState());
+        camera.setState(cameraDetails.getState());
         Camera updateCamera = cameraRepository.save(camera);
         return camera;
     }

@@ -16,10 +16,10 @@ public class Camera implements Serializable {
     private long id;
 
     @Column (name = "detection")
-    private boolean detection;
+    private int detection;
 
     @Column (name = "state")
-    private boolean state;
+    private int state;
 
     @Column (name = "access_server")
     private String auth;
@@ -34,8 +34,8 @@ public class Camera implements Serializable {
     public Camera(@NotBlank String fid) {
         this.fid = fid;
         this.auth = "";
-        this.detection = false;
-        this.state = true;
+        this.detection = 0;
+        this.state = 1;
     }
 
     public long getId() {
@@ -46,19 +46,19 @@ public class Camera implements Serializable {
         this.id = id;
     }
 
-    public boolean isDetection() {
+    public int getDetection() {
         return detection;
     }
 
-    public void setDetection(boolean detection) {
+    public void setDetection(int detection) {
         this.detection = detection;
     }
 
-    public boolean isState() {
+    public int getState() {
         return state;
     }
 
-    public void setState(boolean state) {
+    public void setState(int state) {
         this.state = state;
     }
 

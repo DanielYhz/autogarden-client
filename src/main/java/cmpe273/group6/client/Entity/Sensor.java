@@ -25,7 +25,7 @@ public class Sensor implements Serializable {
     private int water_received;
 
     @Column(name = "state")
-    private boolean state;
+    private int state;
 
     @Column(name = "access_server")
     private String auth;
@@ -43,7 +43,7 @@ public class Sensor implements Serializable {
     public Sensor(@NotBlank int sunlight, @NotBlank int water_received, @NotBlank String fid) {
         this.sunlight = sunlight;
         this.water_received = water_received;
-        this.state = true;
+        this.state = 1;
         this.fid = fid;
         this.auth = "";
         this.access_mode = 2;
@@ -82,13 +82,12 @@ public class Sensor implements Serializable {
         this.water_received = water_received;
     }
 
-    public boolean getState() {
+    public int getState() {
         return state;
     }
 
-    public boolean setState(boolean state) {
+    public void setState(int state) {
         this.state = state;
-        return state;
     }
 
     public String getAuth() {

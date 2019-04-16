@@ -3,7 +3,9 @@ package cmpe273.group6.client.Controller;
 
 import cmpe273.group6.client.Entity.Sensor;
 // import cmpe273.group6.client.Exception.ResourceNotFoundException;
+import cmpe273.group6.client.Entity.Sprinkler;
 import cmpe273.group6.client.Service.SensorRepository;
+import cmpe273.group6.client.Service.SprinklerRepository;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -30,9 +32,11 @@ import java.util.*;
 public class SensorController {
 
     private SensorRepository sensorRepository;
+    private SprinklerRepository sprinklerRepository;
 
-    SensorController (SensorRepository sensorRepository) {
+    SensorController (SensorRepository sensorRepository, SprinklerRepository sprinklerRepository) {
         this.sensorRepository = sensorRepository;
+        this.sprinklerRepository = sprinklerRepository;
     }
 
     // Get all sensors.
@@ -174,7 +178,7 @@ public class SensorController {
         }
 
         if (response.toString().equals("Registration Complete")) {
-            sensor.setState(true);
+            sensor.setState(1);
             sensorRepository.save(sensor);
         }
 
@@ -307,7 +311,7 @@ public class SensorController {
             }
 
             if (map.containsKey("state")) {
-                sensor.setState(Boolean.parseBoolean(map.get("state")));
+                sensor.setState(Integer.parseInt(map.get("state")));
                 if (sensor.isObserve()) {
                     sb.append("Sensor state is updated to ");
                     if (Integer.parseInt(map.get("state")) == 1) {
@@ -351,36 +355,93 @@ public class SensorController {
 
     // Update the local data stored in the client (sensor)
     // change water received and sunlight only.
+    // need to give the information to the server to see if the sprinkler need to turn off.
     @PostMapping("/update/data/{id}")
     public String updateData(@PathVariable(value = "id") long sensorId, @RequestBody Map<String, String> map) {
-        if (sensorRepository.findSensorById(sensorId) == null) {
-            return "The device is not being bootstrapped, please check!";
-        }
-        Sensor sensor = sensorRepository.findSensorById(sensorId);
-        StringBuilder sb = new StringBuilder();
-        if (map.containsKey("sunlight")) {
-            sensor.setSunlight(Integer.parseInt(map.get("sunlight")));
-            if (sensor.isObserve()) {
-                sb.append("Sunlight is updated to " + Integer.parseInt(map.get("sunlight")));
-                sb.append("\n");
+            if (sensorRepository.findSensorById(sensorId) == null) {
+                return "The device is not being bootstrapped, please check!";
             }
-        }
-        if (map.containsKey("water_received")) {
-            sensor.setWater_received(Integer.parseInt(map.get("water_received")));
-            if (sensor.isObserve()) {
-                sb.append("Water received is updated to " + Integer.parseInt(map.get("water_received")));
-                sb.append("\n");
+            Sensor sensor = sensorRepository.findSensorById(sensorId);
+            StringBuilder sb = new StringBuilder();
+            if (map.containsKey("sunlight")) {
+                sensor.setSunlight(Integer.parseInt(map.get("sunlight")));
+                if (sensor.isObserve()) {
+                    sb.append("Sunlight is updated to " + Integer.parseInt(map.get("sunlight")));
+                    sb.append("\n");
+                }
             }
-        }
-        this.sensorRepository.save(sensor);
+            if (map.containsKey("water_received")) {
+                sensor.setWater_received(Integer.parseInt(map.get("water_received")));
+                if (sensor.isObserve()) {
+                    sb.append("Water received is updated to " + Integer.parseInt(map.get("water_received")));
+                    sb.append("\n");
+                }
+            }
+            this.sensorRepository.save(sensor);
 
-        sb.append("Update complete");
+            // send the information to the server to see if it needs to turn off the sprinkler
 
-        if (sensor.isObserve()) {
-            notify(sensor,sb.toString());
-            sb.append("\n Server notified.");
-        }
-        return sb.toString();
+            String access_server = sensor.getAuth() + "/areas/check/" + sensorId;
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            StringBuffer response_message = new StringBuffer();
+
+            try {
+                HttpPost request = new HttpPost(access_server);
+                StringBuilder sb_2 = new StringBuilder();
+                sb_2.append("{");
+                for (String c : map.keySet()) {
+                    sb_2.append("\"");
+                    sb_2.append(c);
+                    sb_2.append("\" : ");
+                    sb_2.append("\"");
+                    sb_2.append(map.get(c));
+                    sb_2.append("\",");
+                }
+                sb_2.deleteCharAt(sb_2.length() - 1);
+                sb_2.append("}");
+                String content = sb_2.toString();
+
+                // System.out.print(content);
+                StringEntity params = new StringEntity(content);
+
+                request.setHeader("content-type", "application/json");
+                request.setEntity(params);
+
+                HttpResponse response = httpClient.execute(request);
+
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(response.getEntity().getContent()));
+                String inputLine;
+
+                while ((inputLine = in.readLine()) != null) {
+                    response_message.append(inputLine);
+                }
+                in.close();
+            }
+            catch (Exception e) {
+                System.out.println(e);
+            }
+
+            // need to check if the sprinkler has been turned off.
+
+            if (response_message.toString().length() > 20 && response_message.toString().substring(0,22).equals("Sprinkler turned off. ")) {
+                long sprinklerId = Long.parseLong(response_message.toString().substring(22));
+                Sprinkler sprinkler = sprinklerRepository.findSprinklerById(sprinklerId);
+                sprinkler.setState(0);
+                sb.append(response_message.toString());
+            } else {
+                sb.append(response_message.toString());
+            }
+
+            sb.append("Update complete");
+
+            if (sensor.isObserve()) {
+                notify(sensor,sb.toString());
+                sb.append("\n Server notified.");
+            }
+            return sb.toString();
     }
 
     @PostMapping("/observe/{id}")
@@ -450,10 +511,10 @@ public class SensorController {
             Sensor sensor = sensorRepository.findSensorById(sensorId);
             StringBuilder sb = new StringBuilder();
             sb.append("This is Sensor " + sensorId + "\n");
-            sb.append("The current sunglight amount is " + sensor.getSunlight() + "\n");
+            sb.append("The current sunlight amount is " + sensor.getSunlight() + "\n");
             sb.append("The current water received is " + sensor.getWater_received() + "\n");
             sb.append("The sensor is ");
-            if (sensor.getState()) {
+            if (sensor.getState() == 1) {
                 sb.append("on" + "\n");
             } else {
                 sb.append("off" + "\n");

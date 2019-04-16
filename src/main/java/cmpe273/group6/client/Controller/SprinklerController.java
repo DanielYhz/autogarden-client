@@ -6,9 +6,13 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 @RestController
 @RequestMapping("/sprinklers")
@@ -45,7 +49,7 @@ public class SprinklerController {
     public Sprinkler updateSprinkler(@PathVariable(value="id") long sprinklerId, @Valid @RequestBody Sprinkler sprinklerDetails) {
         Sprinkler sprinkler = sprinklerRepository.findSprinklerById(sprinklerDetails.getId());
         sprinkler.setId(sprinklerDetails.getId());
-        sprinkler.setState(sprinklerDetails.isState());
+        sprinkler.setState(sprinklerDetails.getState());
         Sprinkler updateSprinkler = sprinklerRepository.save(sprinkler);
         return sprinkler;
     }
@@ -87,10 +91,9 @@ public class SprinklerController {
         return "Something is wrong with your deletion.";
     }
 
-    // Bootstrap a sensor.
+    // Bootstrap a sprinkle.
     @GetMapping("/bs/{id}")
     public String bootStrapSprinkler(@PathVariable(value = "id") long sprinklerId) {
-        // System.out.println(sensorDetails.getId());
         Sprinkler sprinkler = sprinklerRepository.findSprinklerById(sprinklerId);
         String bs_fid = sprinkler.getFid();
         // send Bootstrap request operation to bootstrap server
@@ -124,5 +127,43 @@ public class SprinklerController {
         } else {
             return response.toString();
         }
+    }
+
+    // Register a Sprinkler
+    @PostMapping("/register/{id}")
+    public String registerSprinkler(@PathVariable(value = "id") long sprinklerId) {
+        Sprinkler sprinkler = sprinklerRepository.findSprinklerById(sprinklerId);
+        String access_server = sprinkler.getAuth() + "/sprinklers/register/" + sprinklerId;
+        URLConnection client = null;
+        StringBuffer response = new StringBuffer();
+        try {
+            URL url = new URL(access_server);
+            client = url.openConnection();
+            client.setDoOutput(true);
+            OutputStreamWriter out = new OutputStreamWriter(
+                    client.getOutputStream());
+            out.write(Long.toString(sprinklerId));
+            out.close();
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(client.getInputStream()));
+            String inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+        } catch (MalformedURLException e) {
+            //bad  URL, tell the user
+        } catch (IOException e) {
+            //network error/ tell the user
+        }
+
+        if (response.toString().equals("Registration Complete")) {
+            sprinkler.setState(1);
+            sprinklerRepository.save(sprinkler);
+        }
+
+        return response.toString();
     }
 }
