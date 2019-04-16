@@ -185,37 +185,6 @@ public class SensorController {
         return response.toString();
     }
 
-//    // Delete a sensor
-//    @GetMapping("/delete/{id}")
-//    public String deleteSensor(@PathVariable(value = "id") long sensorId) {
-//        Sensor sensor = sensorRepository.findSensorById(sensorId);
-//        String access_server = sensor.getAuth() + "/sensors/delete/" + sensorId;
-//        URLConnection client = null;
-//        StringBuffer response = new StringBuffer();
-//        try {
-//            URL url = new URL(access_server);
-//            client = url.openConnection();
-//            client.setDoOutput(true);
-//            OutputStreamWriter out = new OutputStreamWriter(
-//                    client.getOutputStream());
-//            out.write(Long.toString(sensorId));
-//            out.close();
-//
-//            BufferedReader in = new BufferedReader(
-//                    new InputStreamReader(client.getInputStream()));
-//            String inputLine;
-//
-//            while ((inputLine = in.readLine()) != null) {
-//                response.append(inputLine);
-//            }
-//            in.close();
-//        } catch (MalformedURLException e) {
-//            //bad  URL, tell the user
-//        } catch (IOException e) {
-//            //network error/ tell the user
-//        }
-//        return response.toString();
-//    }
 
     public void notify(Sensor sensor, String message) {
         StringBuilder sb = new StringBuilder();
