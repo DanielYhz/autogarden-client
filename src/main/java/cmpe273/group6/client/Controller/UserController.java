@@ -1,11 +1,14 @@
 package cmpe273.group6.client.Controller;
 
 
+import cmpe273.group6.client.Entity.Payment;
 import cmpe273.group6.client.Entity.User;
+import cmpe273.group6.client.Service.PaymentRepository;
 import cmpe273.group6.client.Service.UserRepository;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -13,9 +16,11 @@ import java.util.Map;
 public class UserController {
 
     private UserRepository userRepository;
+    private PaymentRepository paymentRepository;
 
-    UserController (UserRepository userRepository) {
+    UserController (UserRepository userRepository, PaymentRepository paymentRepository) {
         this.userRepository = userRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     // Get all users.
@@ -64,6 +69,35 @@ public class UserController {
             return "User deleted.";
         }
         return "User does not exist.";
+    }
+
+    @PostMapping(value="/subscriptions/{id}")
+    public String subscriptionUser(@PathVariable(value = "id") long userId, @RequestBody Map<String, String> map) {
+        if (userRepository.findUserById(userId) == null) {
+            return "User does not exist.";
+        }
+
+        User user = userRepository.findUserById(userId);
+        if (map.containsKey("payment_plan")) {
+            if (map.get("payment_plan").equals("regular")) {
+                user.setPayment_plan(1);
+                Payment first_charge = new Payment(userId, 10);
+                paymentRepository.save(first_charge);
+            } else if (map.get("payment_plan").equals("premium")) {
+                user.setPayment_plan(2);
+                Payment first_charge = new Payment(userId, 20);
+                paymentRepository.save(first_charge);
+            } else if (map.get("payment_plan").equals("cancel")) {
+                user.setPayment_plan(0);
+                return "You have successfully unsubscribed.";
+            } else {
+                return "Invalid input.";
+            }
+        }
+        userRepository.save(user);
+        LocalDate localDate = LocalDate.now();
+        System.out.println(localDate);
+        return user.getFirst_name() + ", thanks for your subscription";
     }
 }
 
