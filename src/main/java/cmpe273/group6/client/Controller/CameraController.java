@@ -190,7 +190,7 @@ public class CameraController {
             camera.setDetection(Integer.parseInt(map.get("detect")));
         }
         cameraRepository.save(camera);
-        System.out.println(map.get("detect"));
+        // System.out.println(map.get("detect"));
         if (Integer.parseInt(map.get("detect")) == 1 || Integer.parseInt(map.get("detect")) == 0) {
             // detect people, turn off the sprinkler of that area.
             // send the information to the server to see if it needs to turn off the sprinkler
