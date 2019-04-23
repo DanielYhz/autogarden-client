@@ -7,7 +7,6 @@ import cmpe273.group6.client.Service.PaymentRepository;
 import cmpe273.group6.client.Service.UserRepository;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -98,6 +97,42 @@ public class UserController {
         LocalDate localDate = LocalDate.now();
         System.out.println(localDate);
         return user.getFirst_name() + ", thanks for your subscription";
+    }
+
+    @GetMapping(value="/observe/{id}")
+    public String observeDevice(@PathVariable(value = "id") long userId) {
+        if (userRepository.findUserById(userId) == null) {
+            return "User does not exist.";
+        }
+
+        User user = userRepository.findUserById(userId);
+        if (user.getPayment_plan() == 0) {
+            return "Please subscribe.";
+        } else {
+            return "You can now observe the system.";
+        }
+    }
+
+    @PostMapping(value="/repair/{id}")
+    public String repairDevice(@PathVariable(value = "id") long userId, @RequestBody Map<String, String> map) {
+        if (userRepository.findUserById(userId) == null) {
+            return "User does not exist.";
+        }
+
+        User user = userRepository.findUserById(userId);
+        if (user.getPayment_plan() == 0) {
+            return "Please subscribe.";
+        } else if (user.getPayment_plan() == 1) {
+            return "You are a basic user.";
+        } else {
+            if (map.containsKey("repair")) {
+                return "The device is under repair.";
+            }
+            if (map.containsKey("maintenance")) {
+                return "The device is under maintenance";
+            }
+        }
+        return "Request done.";
     }
 }
 
