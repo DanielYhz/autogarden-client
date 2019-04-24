@@ -8,6 +8,8 @@ import cmpe273.group6.client.Service.UserRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -88,6 +90,7 @@ public class UserController {
                 paymentRepository.save(first_charge);
             } else if (map.get("payment_plan").equals("cancel")) {
                 user.setPayment_plan(0);
+                userRepository.save(user);
                 return "You have successfully unsubscribed.";
             } else {
                 return "Invalid input.";
@@ -133,6 +136,24 @@ public class UserController {
             }
         }
         return "Request done.";
+    }
+
+    @GetMapping("/bills/{id}")
+    public List<Payment> viewBills(@PathVariable(value="id") long userId) {
+        if (userRepository.findUserById(userId) == null) {
+            return null;
+        }
+
+        User user = userRepository.findUserById(userId);
+        Iterable<Payment> all_payments = paymentRepository.findAll();
+        List<Payment> my_payments = new ArrayList<>();
+
+        for (Payment c : all_payments) {
+            if (c.getUser() == userId) {
+                my_payments.add(c);
+            }
+        }
+        return my_payments;
     }
 }
 

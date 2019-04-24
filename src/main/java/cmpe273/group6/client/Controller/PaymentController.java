@@ -98,13 +98,13 @@ public class PaymentController {
 
         for (User c : all_users) {
             if (c.getPayment_plan() != 0) {
-                sendEmail(c.getEmail(), c.getPayment_plan());
+                sendEmail(c.getEmail(), c.getPayment_plan(), c);
             }
         }
         return "Charged for all users";
     }
 
-    private void sendEmail(String address, int payment_plan) {
+    private void sendEmail(String address, int payment_plan, User user) {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setFrom(from);
         msg.setBcc();
@@ -113,8 +113,12 @@ public class PaymentController {
         msg.setSubject("Your monthly bill");
         if (payment_plan == 1) {
             msg.setText("Charged $10");
+            Payment temp = new Payment(user.getId(),10);
+            paymentRepository.save(temp);
         } else {
             msg.setText("Charged $20");
+            Payment temp = new Payment(user.getId(),20);
+            paymentRepository.save(temp);
         }
         try {
             javaMailSender.send(msg);
@@ -124,25 +128,25 @@ public class PaymentController {
     }
 
 
-    @GetMapping(value = "/sendEmail")
-
-    @ResponseBody
-    public boolean sendEmail() {
-
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setFrom(from);
-        msg.setBcc();
-
-        msg.setTo("yhzdaniel@gmail.com");
-        msg.setSubject("Java技术栈投稿");
-        msg.setText("技术分享");
-        try {
-            javaMailSender.send(msg);
-        } catch (MailException ex) {
-            System.err.println(ex.getMessage());
-            return false;
-        }
-        return true;
-    }
+//    @GetMapping(value = "/sendEmail")
+//
+//    @ResponseBody
+//    public boolean sendEmail() {
+//
+//        SimpleMailMessage msg = new SimpleMailMessage();
+//        msg.setFrom(from);
+//        msg.setBcc();
+//
+//        msg.setTo("yhzdaniel@gmail.com");
+//        msg.setSubject("Java技术栈投稿");
+//        msg.setText("技术分享");
+//        try {
+//            javaMailSender.send(msg);
+//        } catch (MailException ex) {
+//            System.err.println(ex.getMessage());
+//            return false;
+//        }
+//        return true;
+//    }
 
 }
