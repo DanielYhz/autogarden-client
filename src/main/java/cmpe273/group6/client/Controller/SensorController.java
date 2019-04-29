@@ -94,6 +94,11 @@ public class SensorController {
         }
 
         Sensor sensor = sensorRepository.findSensorById(sensorId);
+        if (sensor.getAuth() == null) {
+            sensorRepository.delete(sensor);
+            sensor_registered.remove(sensorId);
+            return "Device did not finish bootstrap, deleted still";
+        }
         String access_server = sensor.getAuth() + "/sensors/" + sensorId;
         StringBuffer response = new StringBuffer();
         try {
@@ -120,8 +125,13 @@ public class SensorController {
             sensorRepository.delete(sensor);
             sensor_registered.remove(sensorId);
             return "Delete success";
+        } else if (response.toString().equals("The device is not registered.")){
+            sensorRepository.delete(sensor);
+            sensor_registered.remove(sensorId);
+            return "Device is not registered, remove success.";
+        } else {
+            return "Something is wrong";
         }
-        return "Something is wrong with your deletion.";
     }
 
     // Bootstrap a sensor.
@@ -154,7 +164,7 @@ public class SensorController {
         }
 
         if(response.toString().length() == 0) {
-            return "Something wrong with the bootstrap"; 
+            return "Something wrong with the bootstrap";
         }
 
         if (response.toString().substring(0,4).equals("http")) {
