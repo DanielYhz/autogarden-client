@@ -34,20 +34,20 @@ public class Sensor implements Serializable {
     private int access_mode;
 
     @Column(name = "observe")
-    private boolean observe;
+    private int observe;
 
     protected Sensor() {
 
     }
 
-    public Sensor(@NotBlank int sunlight, @NotBlank int water_received, @NotBlank String fid) {
-        this.sunlight = sunlight;
-        this.water_received = water_received;
+    public Sensor(@NotBlank String fid) {
+        this.sunlight = 0;
+        this.water_received = 0;
         this.state = 1;
         this.fid = fid;
         this.auth = "";
         this.access_mode = 2;
-        this.observe = false;
+        this.observe = 0;
     }
 
     public void setId(long id) {
@@ -106,11 +106,11 @@ public class Sensor implements Serializable {
         this.access_mode = access_mode;
     }
 
-    public boolean isObserve() {
+    public int getObserve() {
         return observe;
     }
 
-    public void setObserve(boolean observe) {
+    public void setObserve(int observe) {
         this.observe = observe;
     }
 }

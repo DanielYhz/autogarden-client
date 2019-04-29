@@ -27,6 +27,9 @@ public class User implements Serializable {
     // payment plan: 0 -> not paid, 1 -> regular, 2 -> premium
     private int payment_plan;
 
+    @Column(name = "action")
+    private int action;
+
     protected User() {
 
     }
@@ -36,6 +39,7 @@ public class User implements Serializable {
         this.last_name = last_name;
         this.email = email;
         this.payment_plan = 0;
+        this.action = 0;
     }
 
     public long getId() {
@@ -44,6 +48,14 @@ public class User implements Serializable {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public int getAction() {
+        return action;
+    }
+
+    public void setAction(int action) {
+        this.action = action;
     }
 
     public String getFirst_name() {

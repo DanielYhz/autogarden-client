@@ -79,6 +79,7 @@ public class UserController {
         }
 
         User user = userRepository.findUserById(userId);
+        user.setAction(user.getAction() + 1);
         if (map.containsKey("payment_plan")) {
             if (map.get("payment_plan").equals("regular")) {
                 user.setPayment_plan(1);
@@ -109,6 +110,8 @@ public class UserController {
         }
 
         User user = userRepository.findUserById(userId);
+        user.setAction(user.getAction() + 1);
+        userRepository.save(user);
         if (user.getPayment_plan() == 0) {
             return "Please subscribe.";
         } else {
@@ -123,6 +126,8 @@ public class UserController {
         }
 
         User user = userRepository.findUserById(userId);
+        user.setAction(user.getAction() + 1);
+        userRepository.save(user);
         if (user.getPayment_plan() == 0) {
             return "Please subscribe.";
         } else if (user.getPayment_plan() == 1) {
@@ -154,6 +159,16 @@ public class UserController {
             }
         }
         return my_payments;
+    }
+
+    @GetMapping("/actions/{id}")
+    public int viewActions(@PathVariable(value="id") long userId) {
+        if (userRepository.findUserById(userId) == null) {
+            return 0;
+        }
+
+        User user = userRepository.findUserById(userId);
+        return user.getAction();
     }
 }
 

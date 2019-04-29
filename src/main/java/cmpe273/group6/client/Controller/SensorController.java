@@ -34,6 +34,8 @@ public class SensorController {
     private SensorRepository sensorRepository;
     private SprinklerRepository sprinklerRepository;
 
+    Set<Long> sensor_registered = new HashSet<>();
+
     SensorController (SensorRepository sensorRepository, SprinklerRepository sprinklerRepository) {
         this.sensorRepository = sensorRepository;
         this.sprinklerRepository = sprinklerRepository;
@@ -43,6 +45,19 @@ public class SensorController {
     @GetMapping
     public @ResponseBody Iterable<Sensor> getAllSensors() {
         return sensorRepository.findAll();
+    }
+
+    // return all devices that need to be bootstrapped.
+    @GetMapping("/bs/no")
+    public List<Sensor> getAllNoBs() {
+        List<Sensor> all_nobs_sensors = new ArrayList<>();
+        Iterable<Sensor> all_sensors = sensorRepository.findAll();
+        for (Sensor c : all_sensors) {
+            if (c.getAuth() == null) {
+                all_nobs_sensors.add(c);
+            }
+        }
+        return all_nobs_sensors;
     }
 
     // Create a single sensor.
@@ -103,6 +118,7 @@ public class SensorController {
 
         if (response.toString().equals("Delete Succeed")) {
             sensorRepository.delete(sensor);
+            sensor_registered.remove(sensorId);
             return "Delete success";
         }
         return "Something is wrong with your deletion.";
@@ -177,12 +193,25 @@ public class SensorController {
             //network error/ tell the user
         }
 
-        if (response.toString().equals("Registration Complete")) {
+        if (response.toString().substring(0,12).equals("Registration")) {
             sensor.setState(1);
             sensorRepository.save(sensor);
+            sensor_registered.add(sensorId);
         }
-
         return response.toString();
+    }
+
+    @GetMapping("/register/no")
+    public List<Sensor> getAllNoRegister() {
+        Iterable<Sensor> all_sensors = sensorRepository.findAll();
+        List<Sensor> noreg_sensors = new ArrayList<>();
+
+        for (Sensor c : all_sensors) {
+            if (!sensor_registered.contains(c.getId())) {
+                noreg_sensors.add(c);
+            }
+        }
+        return noreg_sensors;
     }
 
 
@@ -273,7 +302,7 @@ public class SensorController {
         if (response_message.toString().equals("Update succeed!")) {
             if (map.containsKey("sensor_id")) {
                 sensor.setId(Long.parseLong(map.get("sensor_id")));
-                if (sensor.isObserve()) {
+                if (sensor.getObserve() == 1) {
                     sb.append("Sensor id is updated to " + Integer.parseInt(map.get("sensor_id")));
                     sb.append("\n");
                 }
@@ -281,7 +310,7 @@ public class SensorController {
 
             if (map.containsKey("state")) {
                 sensor.setState(Integer.parseInt(map.get("state")));
-                if (sensor.isObserve()) {
+                if (sensor.getObserve() == 1) {
                     sb.append("Sensor state is updated to ");
                     if (Integer.parseInt(map.get("state")) == 1) {
                         sb.append("on");
@@ -294,7 +323,7 @@ public class SensorController {
 
             if (map.containsKey("access_mode")) {
                 sensor.setAccess_mode(Integer.parseInt(map.get("access_mode")));
-                if (sensor.isObserve()) {
+                if (sensor.getObserve() == 1) {
                     sb.append("Sensor access mode is updated to ");
                     if (Integer.parseInt(map.get("access_mode")) == 0) {
                         sb.append("Read Only");
@@ -311,7 +340,7 @@ public class SensorController {
 
             sb.append("Update device id: " + sensorId + " succeed!");
 
-            if (sensor.isObserve()) {
+            if (sensor.getObserve() == 1) {
                 notify(sensor,sb.toString());
                 sb.append("\n Server notified.");
             }
@@ -334,14 +363,14 @@ public class SensorController {
             StringBuilder sb = new StringBuilder();
             if (map.containsKey("sunlight")) {
                 sensor.setSunlight(Integer.parseInt(map.get("sunlight")));
-                if (sensor.isObserve()) {
+                if (sensor.getObserve() == 1) {
                     sb.append("Sunlight is updated to " + Integer.parseInt(map.get("sunlight")));
                     sb.append("\n");
                 }
             }
             if (map.containsKey("water_received")) {
                 sensor.setWater_received(Integer.parseInt(map.get("water_received")));
-                if (sensor.isObserve()) {
+                if (sensor.getObserve() == 1) {
                     sb.append("Water received is updated to " + Integer.parseInt(map.get("water_received")));
                     sb.append("\n");
                 }
@@ -406,7 +435,7 @@ public class SensorController {
 
             sb.append("Update complete");
 
-            if (sensor.isObserve()) {
+            if (sensor.getObserve() == 1) {
                 notify(sensor,sb.toString());
                 sb.append("\n Server notified.");
             }
@@ -461,13 +490,13 @@ public class SensorController {
         }
         if (response_message.toString().equals("Observe on")) {
             if (map.containsKey("observe")) {
-                sensor.setObserve(Boolean.parseBoolean(map.get("observe")));
+                sensor.setObserve(Integer.parseInt(map.get("observe")));
             }
             this.sensorRepository.save(sensor);
             return "Sensor of ID " + sensorId + " is being observed.";
         } else {
             if (map.containsKey("observe")) {
-                sensor.setObserve(Boolean.parseBoolean(map.get("observe")));
+                sensor.setObserve(Integer.parseInt(map.get("observe")));
             }
             this.sensorRepository.save(sensor);
             return "Device is not being observed";
@@ -496,7 +525,7 @@ public class SensorController {
             } else {
                 sb.append("read and write" + "\n");
             }
-            if (sensor.isObserve()) {
+            if (sensor.getObserve() == 1) {
                 sb.append("The device is being observed");
             } else {
                 sb.append("The device is not being observed");
