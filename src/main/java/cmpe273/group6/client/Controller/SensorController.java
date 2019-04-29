@@ -153,6 +153,10 @@ public class SensorController {
             e.printStackTrace();
         }
 
+        if(response.toString().length() == 0) {
+            return "Something wrong with the bootstrap"; 
+        }
+
         if (response.toString().substring(0,4).equals("http")) {
             sensor.setAuth(response.toString());
             sensorRepository.save(sensor);
