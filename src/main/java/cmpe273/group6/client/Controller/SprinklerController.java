@@ -13,6 +13,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/sprinklers")
@@ -165,5 +167,18 @@ public class SprinklerController {
         }
 
         return response.toString();
+    }
+
+    // return all devices that need to be bootstrapped.
+    @GetMapping("/bs/no")
+    public List<Sprinkler> getAllSprinklerNoBs() {
+        List<Sprinkler> all_nobs_sprinklers = new ArrayList<>();
+        Iterable<Sprinkler> all_sprinklers = sprinklerRepository.findAll();
+        for (Sprinkler c : all_sprinklers) {
+            if (c.getAuth() == null) {
+                all_nobs_sprinklers.add(c);
+            }
+        }
+        return all_nobs_sprinklers;
     }
 }

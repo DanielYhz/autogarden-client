@@ -20,6 +20,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -257,5 +259,18 @@ public class CameraController {
             return "Invalid detection.";
         }
         return "Detection complete.";
+    }
+
+    // return all devices that need to be bootstrapped.
+    @GetMapping("/bs/no")
+    public List<Camera> getAllCameraNoBs() {
+        List<Camera> all_nobs_cameras = new ArrayList<>();
+        Iterable<Camera> all_cameras = cameraRepository.findAll();
+        for (Camera c : all_cameras) {
+            if (c.getAuth() == null) {
+                all_nobs_cameras.add(c);
+            }
+        }
+        return all_nobs_cameras;
     }
 }
