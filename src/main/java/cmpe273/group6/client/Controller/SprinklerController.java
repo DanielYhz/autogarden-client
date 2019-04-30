@@ -53,7 +53,7 @@ public class SprinklerController {
         sprinkler.setId(sprinklerDetails.getId());
         sprinkler.setState(sprinklerDetails.getState());
         Sprinkler updateSprinkler = sprinklerRepository.save(sprinkler);
-        return sprinkler;
+        return updateSprinkler;
     }
 
     // Delete a sprinkler.

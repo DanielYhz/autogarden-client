@@ -245,20 +245,29 @@ public class CameraController {
             || response_message.toString().equals("There is no sprinkler in this area") || response_message.toString().equals("need more information")) {
                 return "nothing has been changed.";
             } else if (response_message.charAt(18) == 'f') {
-                Sprinkler sprinkler = sprinklerRepository.findSprinklerById(Long.parseLong(response_message.substring(22)));
+                long sprinklerId = Long.parseLong(response_message.toString().split(" ")[response_message.toString().split(" ").length - 1]);
+                if (sprinklerRepository.findSprinklerById(sprinklerId) == null) {
+                    return "Sprinkler is not valid.";
+                }
+                Sprinkler sprinkler = sprinklerRepository.findSprinklerById(sprinklerId);
                 sprinkler.setState(0);
                 sprinklerRepository.save(sprinkler);
+                return "Sprinkler is off";
             } else if (response_message.charAt(18) == 'n') {
-                Sprinkler sprinkler = sprinklerRepository.findSprinklerById(Long.parseLong(response_message.substring(22)));
+                long sprinklerId = Long.parseLong(response_message.toString().split(" ")[response_message.toString().split(" ").length - 1]);
+                if (sprinklerRepository.findSprinklerById(sprinklerId) == null) {
+                    return "Sprinkler is not valid.";
+                }
+                Sprinkler sprinkler = sprinklerRepository.findSprinklerById(sprinklerId);
                 sprinkler.setState(1);
                 sprinklerRepository.save(sprinkler);
+                return "Sprinkler is on";
             } else {
                 return "Sprinkler status has been updated";
             }
         } else {
             return "Invalid detection.";
         }
-        return "Detection complete.";
     }
 
     // return all devices that need to be bootstrapped.
